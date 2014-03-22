@@ -8,3 +8,4 @@ No HTML or Javascript yet.  Just a RESTful interface that we expect our GUI to u
 
 There are several nice tricks here, including configuring a JSON converter that knows not to attempt to render lazy loaded fields of a Hibernate domatin object, and a JSON annotation on domain objects that prevent the JSON conververt from causing an infinite recursion.  You need something like this if you don't want to automatically create a DTO for every Hibernate/JPA object your api returns.
 
+TODO: Finish QuizControllerTest, figure out why Quesation.choices gets fetched with duplicates, add Spring Security.
