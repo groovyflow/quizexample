@@ -1,0 +1,10 @@
+This project was originally based on code from https://github.com/spring-projects/spring-test-mvc, especially rest-unit, and https://github.com/nebhale/spring-one-2013/tree/master/rest-ful-api-design
+Thanks to Petri Kainulainen and Ben Hale 
+
+Building quiz with the Spring Framework 3.2
+Here users are expected to look at content after answering a quiz question, so we don't return the next question until the client asks for it.
+
+No HTML or Javascript yet.  Just a RESTful interface that we expect our GUI to use.
+
+There are several nice tricks here, including configuring a JSON converter that knows not to attempt to render lazy loaded fields of a Hibernate domatin object, and a JSON annotation on domain objects that prevent the JSON conververt from causing an infinite recursion.  You need something like this if you don't want to automatically create a DTO for every Hibernate/JPA object your api returns.
+
