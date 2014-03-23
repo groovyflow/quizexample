@@ -74,11 +74,8 @@ public class QuizController {
     		},HttpStatus.UNAUTHORIZED);
     	}
     	else {
-    		//quizService.saveAnswer(user, questionId, choiceId);
-    		System.out.println("Any database activity here in controller?");
     		quizService.saveAnswer(new Answer().setUser(user).setChoice(quizService.stubReferenceForId(Choice.class, choiceId)).
     				setQuestion(quizService.stubReferenceForId(Question.class, questionId)));
-    		System.out.println("Well was there?");
     		
     		//TODO  If no quizContent found, we have internal server error.
     		//And looks like we need to URL encode the data!  I see apostrophes getting mangled.
@@ -98,6 +95,7 @@ public class QuizController {
     //TODO Use Spring Security!!
     //Could add to this @RequestMapping consumes = MediaType.APPLICATION_JSON, according to minute 47:57 of https://www.youtube.com/watch?v=wylViAqNiRA
     //CHUCK!!! ---> That same video shows throwing specific Exceptions that can handle the possibility of no id found for that entity, etc!!
+    //That's starting after minute 59 in that video
     @RequestMapping(value = LOGIN_URL, method = RequestMethod.POST)
     //TODO  Tried to get password by itself from @RequestBody, but it was mangled.  Had to get the whole user.  It had \n and some other extra characters.
     //It's important to either find out how to get parameter values with @RequestBody, or to realize we always need to have @RequestBody <some dto or entity object>

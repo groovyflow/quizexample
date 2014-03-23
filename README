@@ -8,7 +8,10 @@ No HTML or Javascript yet.  Just a RESTful interface that we expect our GUI to u
 
 There are several nice tricks here, including configuring a JSON converter that knows not to attempt to render lazy loaded fields of a Hibernate domatin object, and a JSON annotation on domain objects that prevent the JSON conververt from causing an infinite recursion.  You need something like this if you don't want to automatically create a DTO for every Hibernate/JPA object your api returns.
 
-TODO: add Spring Security, some sfl4j logging.
+TODO: add Spring Security,  some sfl4j logging.
+TODO: @ExceptionHandler as in Ben Hale's rest-ful-api-design, https://www.youtube.com/watch?v=wylViAqNiRA starting into minute 59
+@ExceptionHandler({ GameDoesNotExistException.class, DoorDoesNotExistException.class })
+ResponseEntity<String> handleXXExceptions(Exception e)
 
 THIS URL shows how to use Jackson's Object Mapper to convert a JSON String into a Map. 
 I might do this to compare JSON sent from our RESTful services with the expectation, and here the expectation could be rendered as a Map.
