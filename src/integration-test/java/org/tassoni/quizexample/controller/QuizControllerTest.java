@@ -102,9 +102,26 @@ public class QuizControllerTest {
     public void nextQuestion_WhenNoQuestionHasBeenAnsweredYet() throws Exception{
     	String json = mockMvc.perform(get("/api/quiz/next").sessionAttr(QuizController.USER_KEY, user)).andExpect(status().isOk()).
     	andReturn().getResponse().getContentAsString();
-    	System.out.println("NextQuestion Json was " + json);
-    	//TODO!!
-    	assertTrue(json.contains("\"question\":1"));
+    	
+    	assertEquals("question.Id is not as expected", new Integer(1), JsonPath.read(json, "$.id"));
+    	assertEquals("question.text is not as expected", "Do you have a LinkedIn account?", JsonPath.read(json, "$.text"));
+    	assertTrue("question.edge should be null", null == JsonPath.read(json, "$.edge"));
+    	assertTrue("question.whyImportant should be null", null == JsonPath.read(json, "$.whyImpportant"));
+    	
+    	assertEquals("choice texts are not as expected", new ArrayList<String>() {
+    		{
+    		  add("No");
+    		  add("Yes");
+    		}
+    	}, JsonPath.read(json, "$.choices[*].text"));
+    	assertEquals("choice ids are not as expected", new ArrayList<Integer>() {
+    		{
+    		  add(1);
+    		  add(2);
+    		}
+    	}, JsonPath.read(json, "$.choices[*].id"));
+    	
+    	System.out.println("Json is " + json);
     }
     
     @Test
@@ -130,6 +147,8 @@ public class QuizControllerTest {
     	assertEquals("question.Id is not as expected", new Integer(2), JsonPath.read(json, "$.id"));
     	assertEquals("question.text is not as expected", "Do you have a resume? ", JsonPath.read(json, "$.text"));
     	assertEquals("question.edge is not as expected", "Want an edge? Create a business card or leave behind", JsonPath.read(json, "$.edge"));
+    	assertTrue("question.whyImportant should be null", null == JsonPath.read(json, "$.whyImpportant"));
+    	
     	assertEquals("choice texts are not as expected", new ArrayList<String>() {
     		{
     		  add("No");
@@ -143,8 +162,7 @@ public class QuizControllerTest {
     		}
     	}, JsonPath.read(json, "$.choices[*].id"));
     	
-    	assertTrue("question.whyImportant should be null", null == JsonPath.read(json, "$.whyImpportant"));
-    	
+    	System.out.println("Json is " + json);
     }    
     
     
