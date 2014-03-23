@@ -2,23 +2,6 @@ package org.tassoni.quizexample.controller;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.Resource;
-import javax.validation.constraints.AssertTrue;
-
-
-
-
-
-
-
-
-
-
-
-import net.sf.cglib.transform.impl.AddDelegateTransformer;
-
 
 //import org.hamcrest.generator.QuickReferenceWriter;
 import org.junit.Before;
@@ -31,26 +14,21 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import org.tassoni.quizexample.controller.QuizController;
+import org.tassoni.quizexample.model.Answer;
 import org.tassoni.quizexample.model.User;
+import org.tassoni.quizexample.repository.BasicRepository;
 import org.tassoni.quizexample.service.QuizService;
 
 import com.jayway.jsonpath.JsonPath;
 
 
 
-
-
-
-
-
-
-
-
-
-
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -69,6 +47,13 @@ public class QuizControllerTest {
     @Autowired
     private QuizService quizService;
     
+    @Autowired 
+    private PlatformTransactionManager platformTransactionManager;
+    
+    private TransactionTemplate transactionTemplate;
+    
+    @Autowired 
+    private BasicRepository basicRepository;
      
     private MockMvc mockMvc;
     
@@ -81,6 +66,7 @@ public class QuizControllerTest {
     public void setUp() {
         mockMvc =  MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
         user = quizService.findUserByUsernameAndPassword(userName, correctPassword);
+        transactionTemplate = new TransactionTemplate(platformTransactionManager);
     }
     
     @Test
@@ -127,10 +113,21 @@ public class QuizControllerTest {
     @Test
     public void answerQuestion() throws Exception {
     	//TODO  Check that the answer hasn't been saved before we act but is saved afterwards
+    	//quizService.
+    	Answer latestAnswerBeforeAnsweringThisQuestion = findLatestAnswer(this.user);
+    	
     	Long questionId = 1l; Long choiceId = 2l;
     	String json = answerQuestion(questionId, choiceId);
     	String mainContent = JsonPath.read(json, "$.main");
     	assertEquals(quizService.findQuizContentByChoiceId(choiceId).getMain(), mainContent);
+    	
+    	Answer latestAnswerAfterAnsweringThisQuestion = findLatestAnswer(this.user);
+    	assertEquals(questionId, latestAnswerAfterAnsweringThisQuestion.getQuestion().getId());
+    	assertEquals(choiceId, latestAnswerAfterAnsweringThisQuestion.getChoice().getId());
+    	assertEquals(this.user.getId(), latestAnswerAfterAnsweringThisQuestion.getUser().getId());
+
+    	assertTrue("Answer existed before we made a choice for our question ", 
+    			latestAnswerBeforeAnsweringThisQuestion == null ||  ! latestAnswerAfterAnsweringThisQuestion.getId().equals(latestAnswerBeforeAnsweringThisQuestion.getId()));
     }
     
     private String answerQuestion(Long questionId, Long choiceId) throws Exception{
@@ -166,8 +163,17 @@ public class QuizControllerTest {
     }    
     
     
-
     private byte[] getBytes(String s) throws UnsupportedEncodingException {
         return s.getBytes("UTF8");
-    }    
+    }
+    
+    private Answer findLatestAnswer(final User user) {
+    	return transactionTemplate.execute(new TransactionCallback<Answer>() {
+			@Override
+			public Answer doInTransaction(TransactionStatus status) {
+				return basicRepository.latestAnswerForUser(user);
+			}
+		});
+    };
+    
 }
