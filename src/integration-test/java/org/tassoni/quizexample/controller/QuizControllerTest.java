@@ -1,10 +1,23 @@
 package org.tassoni.quizexample.controller;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.Resource;
 import javax.validation.constraints.AssertTrue;
 
+
+
+
+
+
+
+
+
+
+
+import net.sf.cglib.transform.impl.AddDelegateTransformer;
 
 
 //import org.hamcrest.generator.QuickReferenceWriter;
@@ -24,6 +37,14 @@ import org.tassoni.quizexample.model.User;
 import org.tassoni.quizexample.service.QuizService;
 
 import com.jayway.jsonpath.JsonPath;
+
+
+
+
+
+
+
+
 
 
 
@@ -90,24 +111,40 @@ public class QuizControllerTest {
     public void answerQuestion() throws Exception {
     	//TODO  Check that the answer hasn't been saved before we act but is saved afterwards
     	Long questionId = 1l; Long choiceId = 2l;
-    	String json = answerQuestion(1l, 2l);
+    	String json = answerQuestion(questionId, choiceId);
     	String mainContent = JsonPath.read(json, "$.main");
-    	System.out.println("About to check on quizContents in the database");
     	assertEquals(quizService.findQuizContentByChoiceId(choiceId).getMain(), mainContent);
     }
     
     private String answerQuestion(Long questionId, Long choiceId) throws Exception{
-     	return mockMvc.perform(put("/api/quiz/question/" + questionId + "/choice/" + choiceId).sessionAttr(QuizController.USER_KEY, user)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+    	String path = String.format("/api/quiz/question/%d/choice/%d", questionId, choiceId);
+     	return mockMvc.perform(put(path).sessionAttr(QuizController.USER_KEY, user)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
     }
     
     @Test
     public void nextQuestion_WhenOneQuestionHasAlreadyBeenAnswered() throws Exception{
-    	answerQuestion();
+    	answerQuestion(1l, 2l);
     	String json = mockMvc.perform(get("/api/quiz/next").sessionAttr(QuizController.USER_KEY, user)).andExpect(status().isOk()).
     	andReturn().getResponse().getContentAsString();
-    	System.out.println("After we've answered a question, nextQuestion Json was " + json);
-    	//TODO!!
-    	//assertTrue(json.contains("\"question\":1"));
+    	
+    	assertEquals("question.Id is not as expected", new Integer(2), JsonPath.read(json, "$.id"));
+    	assertEquals("question.text is not as expected", "Do you have a resume? ", JsonPath.read(json, "$.text"));
+    	assertEquals("question.edge is not as expected", "Want an edge? Create a business card or leave behind", JsonPath.read(json, "$.edge"));
+    	assertEquals("choice texts are not as expected", new ArrayList<String>() {
+    		{
+    		  add("No");
+    		  add("Yes");
+    		}
+    	}, JsonPath.read(json, "$.choices[*].text"));
+    	assertEquals("choice ids are not as expected", new ArrayList<Integer>() {
+    		{
+    		  add(3);
+    		  add(4);
+    		}
+    	}, JsonPath.read(json, "$.choices[*].id"));
+    	
+    	assertTrue("question.whyImportant should be null", null == JsonPath.read(json, "$.whyImpportant"));
+    	
     }    
     
     
