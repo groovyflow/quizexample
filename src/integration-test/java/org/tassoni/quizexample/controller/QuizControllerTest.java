@@ -128,6 +128,19 @@ public class QuizControllerTest {
 
     	assertTrue("Answer existed before we made a choice for our question ", 
     			latestAnswerBeforeAnsweringThisQuestion == null ||  ! latestAnswerAfterAnsweringThisQuestion.getId().equals(latestAnswerBeforeAnsweringThisQuestion.getId()));
+    	
+    	//I think we probably want to be able to answer the same question with more than one choice. 
+    	//I'll try that out right here.
+    	choiceId = 2l;
+    	String jsonWhenAnsweringWithASecondChoice = answerQuestion(questionId, choiceId);
+    	String mainContent2 = JsonPath.read(jsonWhenAnsweringWithASecondChoice, "$.main");
+    	assertEquals(quizService.findQuizContentByChoiceId(choiceId).getMain(), mainContent2);
+    	
+    	Answer thisIsTheLastTimeWeAreAnsweringThisDarnQuestion = findLatestAnswer(this.user);
+    	assertEquals(questionId, thisIsTheLastTimeWeAreAnsweringThisDarnQuestion.getQuestion().getId());
+    	assertEquals(choiceId, thisIsTheLastTimeWeAreAnsweringThisDarnQuestion.getChoice().getId());
+    	assertEquals(this.user.getId(), thisIsTheLastTimeWeAreAnsweringThisDarnQuestion.getUser().getId());
+    	
     }
     
     private String answerQuestion(Long questionId, Long choiceId) throws Exception{
