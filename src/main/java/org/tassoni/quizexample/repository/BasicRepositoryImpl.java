@@ -3,6 +3,9 @@ package org.tassoni.quizexample.repository;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
@@ -10,6 +13,7 @@ import javax.persistence.TypedQuery;
 
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.tassoni.quizexample.controller.HomeController;
 import org.tassoni.quizexample.model.Answer;
 import org.tassoni.quizexample.model.BaseEntity;
 import org.tassoni.quizexample.model.Choice;
@@ -38,6 +42,8 @@ class BasicRepositoryImpl implements BasicRepository{
 	//We must therefore be using the default shared-cache-mode.
 	//This site has some info about the available shared-cache-modes, and also showed me how
 	//to programmatically access the cache: http://docs.oracle.com/javaee/6/tutorial/doc/gkjjj.html
+	
+    private static final Logger LOGGER = LoggerFactory.getLogger(BasicRepositoryImpl.class);
 	
 	@PersistenceContext
 	protected EntityManager eM;
@@ -108,23 +114,31 @@ class BasicRepositoryImpl implements BasicRepository{
 		return answers.isEmpty() ? null : answers.iterator().next();
 		//Could have done getSingleResult, but didn't because we don't want "no entity found for query" exception here: return query.getSingleResult();
 	}
-	public Question findNextQuestion( Answer answer){	
-		TypedQuery<Question> query = eM.createQuery("select question2 from  Question question2 inner join fetch question2.choices,  NextQuestion nextQuestion, Question question where"
+	public Question findNextQuestionAndChoices( Answer answer){	
+		TypedQuery<Question> query = eM.createQuery("select distinct question2 from  Question question2 inner join fetch question2.choices choices,  NextQuestion nextQuestion, Question question where"
     		+ "  nextQuestion.question = :question and nextQuestion.choice = :choice and"
-			+ " nextQuestion.nextQuestion = question2", Question.class);
+			+ " nextQuestion.nextQuestion = question2 order by choices.id", Question.class);
 		System.out.println("Finding next question for questionId " + answer.getQuestion().getId() + " and choice " + answer.getChoice().getId());
 		query.setParameter("question", answer.getQuestion());
 		query.setParameter("choice", answer.getChoice());
 		Question question = query.getSingleResult();
-		//eM.detach(question);
+/*		for(Choice choice : question.getChoices()) {
+			System.out.println("DELETE ME: From BasicRepositoryImpl: choicd id: " + choice.getId() + " text " + choice.getText());
+		}*/
+		
 		return question;
 	}
 	
 	public Question findQuestionAndChoices(Long questionId) {
-		TypedQuery<Question> query = eM.createQuery("select question from Question question inner join fetch question.choices where question.id = :id", 
+		TypedQuery<Question> query = eM.createQuery("select question from Question question inner join fetch question.choices choices where question.id = :id order by choices.id", 
 				Question.class);
 		query.setParameter("id", questionId);
-		return query.getSingleResult();
+		Question question =  query.getSingleResult();
+		
+/*		for(Choice choice : question.getChoices()) {
+			System.out.println("findQuestionAndChoicees by id: DELETE ME: From BasicRepositoryImpl: choicd id: " + choice.getId() + " text " + choice.getText());
+		}*/
+		return question;
 	}
 	
 	public <T extends BaseEntity> T genericSingle(final String queryString, final Map<String, Object> params, final Class<T> clazz) {

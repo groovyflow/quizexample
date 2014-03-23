@@ -8,6 +8,11 @@ No HTML or Javascript yet.  Just a RESTful interface that we expect our GUI to u
 
 There are several nice tricks here, including configuring a JSON converter that knows not to attempt to render lazy loaded fields of a Hibernate domatin object, and a JSON annotation on domain objects that prevent the JSON conververt from causing an infinite recursion.  You need something like this if you don't want to automatically create a DTO for every Hibernate/JPA object your api returns.
 
-TODO: Finish QuizControllerTest, figure out why Quesation.choices gets fetched with duplicates, add Spring Security.
+TODO: Finish QuizControllerTest, figure out why Quesation.choices gets fetched with duplicates, add Spring Security, some sfl4j logging.
 
-(How's git working. Did this get pushed?)
+THIS URL shows how to use Jackson's Object Mapper to convert a JSON String into a Map. 
+I might do this to compare JSON sent from our RESTful services with the expectation, and here the expectation could be rendered as a Map.
+We could say: Is this expected Map contained in this map transformed from the original JSON?
+We'd ask contained-in rather then equals because it's ok if a few fields that the GUI doesn't need are sent in the JSON
+http://djna.wordpress.com/2010/03/12/json-strings-no-rest-using-the-jackson-parser/
+

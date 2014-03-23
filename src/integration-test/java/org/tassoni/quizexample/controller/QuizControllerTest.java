@@ -78,7 +78,7 @@ public class QuizControllerTest {
     }
     
     @Test
-    public void nextQuestion_WhenNoQuestionHasBeenAskedYet() throws Exception{
+    public void nextQuestion_WhenNoQuestionHasBeenAnsweredYet() throws Exception{
     	String json = mockMvc.perform(get("/api/quiz/next").sessionAttr(QuizController.USER_KEY, user)).andExpect(status().isOk()).
     	andReturn().getResponse().getContentAsString();
     	System.out.println("NextQuestion Json was " + json);
@@ -89,14 +89,26 @@ public class QuizControllerTest {
     @Test
     public void answerQuestion() throws Exception {
     	//TODO  Check that the answer hasn't been saved before we act but is saved afterwards
-    	Long choiceId = 2l;
-    	
-     	String choosingJson = mockMvc.perform(put("/api/quiz/question/1/choice/" + choiceId).sessionAttr(QuizController.USER_KEY, user)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-    	String mainContent = JsonPath.read(choosingJson, "$.main");
+    	Long questionId = 1l; Long choiceId = 2l;
+    	String json = answerQuestion(1l, 2l);
+    	String mainContent = JsonPath.read(json, "$.main");
     	System.out.println("About to check on quizContents in the database");
     	assertEquals(quizService.findQuizContentByChoiceId(choiceId).getMain(), mainContent);
-    	    	
     }
+    
+    private String answerQuestion(Long questionId, Long choiceId) throws Exception{
+     	return mockMvc.perform(put("/api/quiz/question/" + questionId + "/choice/" + choiceId).sessionAttr(QuizController.USER_KEY, user)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+    }
+    
+    @Test
+    public void nextQuestion_WhenOneQuestionHasAlreadyBeenAnswered() throws Exception{
+    	answerQuestion();
+    	String json = mockMvc.perform(get("/api/quiz/next").sessionAttr(QuizController.USER_KEY, user)).andExpect(status().isOk()).
+    	andReturn().getResponse().getContentAsString();
+    	System.out.println("After we've answered a question, nextQuestion Json was " + json);
+    	//TODO!!
+    	//assertTrue(json.contains("\"question\":1"));
+    }    
     
     
 

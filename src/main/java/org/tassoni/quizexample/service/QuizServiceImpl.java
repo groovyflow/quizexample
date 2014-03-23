@@ -91,7 +91,7 @@ public class QuizServiceImpl implements QuizService{
 		if(latestAnswer == null)
 			return basicRepository.findQuestionAndChoices(INITIAL_QUESTION);
 		else 
-			return basicRepository.findNextQuestion(latestAnswer);
+			return basicRepository.findNextQuestionAndChoices(latestAnswer);
 		
 	}
 }

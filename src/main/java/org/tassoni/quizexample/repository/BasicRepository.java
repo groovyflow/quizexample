@@ -30,7 +30,7 @@ public interface BasicRepository {
 	
 	public QuizContent findQuizContentByChoiceId(Long choiceId);
 	Answer latestAnswerForUser(User user);
-	Question findNextQuestion( Answer answer);
+	Question findNextQuestionAndChoices( Answer answer);
 	Question findQuestionAndChoices(Long questionId);
 	<T extends BaseEntity> T genericSingle(final String queryString, final Map<String, Object> params, final Class<T> clazz);
 

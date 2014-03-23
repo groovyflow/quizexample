@@ -55,12 +55,10 @@ public class WorkOnQueriesTest {
 	}
 
 
-	@Ignore
 	@Test
 	public void nextQuestion() {
-
-		String queryString = "select question2 from  Question question2 inner join fetch question2.choices,  NextQuestion nextQuestion, Question question where question.id = :id and nextQuestion.question = question and"
-				+ " nextQuestion.nextQuestion = question2 ";
+		String queryString = "select distinct question2 from  Question question2 inner join fetch question2.choices choices,  NextQuestion nextQuestion, Question question where question.id = :id and nextQuestion.question = question and"
+				+ " nextQuestion.nextQuestion = question2 order by choices.id";
 
 		Question nextQuestion = queryInTrx(queryString,
 				new HashMap<String, Object>() {
@@ -71,6 +69,9 @@ public class WorkOnQueriesTest {
 		
 		assertTrue(nextQuestion.getText().contains("Do you have a resume?"));
 		List<Choice> choices = nextQuestion.getChoices();
+		for(Choice choice : nextQuestion.getChoices()) {
+			System.out.println("choice text is " + choice.getText() + " and choice id is " + choice.getId());
+		}
 		assertEquals(2, choices.size());
 		assertEquals("No", choices.iterator().next().getText());
 		assertEquals("Yes", choices.get(1).getText());
