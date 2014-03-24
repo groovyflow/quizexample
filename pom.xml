@@ -56,7 +56,7 @@
     </profiles>
 
     <build>
-        <finalName>spring-test-mvc-configuration</finalName>
+        <finalName>quiz-example</finalName>
         <filters>
             <filter>profiles/${build.profile.id}/config.properties</filter>
         </filters>
