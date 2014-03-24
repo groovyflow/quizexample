@@ -102,7 +102,6 @@ public class QuizController {
     //TODO THe body we return here is pretty superfluous 
     //??Should it be @ResponseBody User rather than @RequestBody User, as in https://www.youtube.com/watch?v=wylViAqNiRA minute 47
 	public ResponseEntity<Map<String, Object>> login(@PathVariable String username, @RequestBody User user, HttpSession session) {
-    	System.out.println("YO!!!! THERE CHUCK!!");
 		User retrieved = quizService.findUserByUsernameAndPassword(username, user.getPassword());
 		if (retrieved == null) {
 			return new ResponseEntity<Map<String, Object>>(
