@@ -100,6 +100,8 @@ class BasicRepositoryImpl implements BasicRepository{
 	//TODO  Move this to AnswerRepository
 	
 	public Answer latestAnswerForUser(User user) {
+		if(user == null)
+			throw new IllegalArgumentException("Null user");
 		System.out.println("Let's see the sql!");
 		TypedQuery<Answer> query = eM.createQuery("select answer from Answer answer, User user where user.id = :userid and answer.user = :user" + 
 	         " order by answer.creationTime desc" , Answer.class);

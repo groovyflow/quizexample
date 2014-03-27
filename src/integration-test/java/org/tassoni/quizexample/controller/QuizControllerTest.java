@@ -3,12 +3,17 @@ package org.tassoni.quizexample.controller;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
+
+
+//import net.petrikainulainen.spring.testmvc.IntegrationTestUtil;
+
 //import org.hamcrest.generator.QuickReferenceWriter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -28,12 +33,12 @@ import org.tassoni.quizexample.service.QuizService;
 import com.jayway.jsonpath.JsonPath;
 
 
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.junit.Assert.*;
+import static org.tassoni.quizexample.context.SecurityRequestPostProcessors.userDetailsService;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -43,6 +48,9 @@ public class QuizControllerTest {
 	
     @Autowired
     private WebApplicationContext webApplicationContext;
+    
+    @Autowired
+    private FilterChainProxy filterChainProxy;
 
     @Autowired
     private QuizService quizService;
@@ -60,16 +68,16 @@ public class QuizControllerTest {
     private final String userName = "Chuck";
     private final String correctPassword = "thePassword";
     private static final String QUOTE = "\"";
-    private User user;
+   // private User user;
     
     @Before
     public void setUp() {
-        mockMvc =  MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-        user = quizService.findUserByUsernameAndPassword(userName, correctPassword);
+        mockMvc =  MockMvcBuilders.webAppContextSetup(webApplicationContext).addFilter(filterChainProxy).build();
+        //user = quizService.findUserByUsernameAndPassword(userName, correctPassword);
         transactionTemplate = new TransactionTemplate(platformTransactionManager);
     }
     
-    @Test
+/*    @Test
     public void login_badPassword() throws Exception {
     	String incorrectPassword = correctPassword + "x"; 
     	String json = mockMvc.perform(post("/login/Chuck").contentType(MediaType.APPLICATION_JSON).content(getBytes("{ \"password\": " + QUOTE + incorrectPassword + QUOTE + "}")) ).
@@ -82,12 +90,20 @@ public class QuizControllerTest {
     	String json = mockMvc.perform(post("/login/Chuck").contentType(MediaType.APPLICATION_JSON).content(getBytes("{ \"password\": " + QUOTE + correctPassword + QUOTE + "}")) ).
     	andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
     	System.out.println("JSON was " + json);
+    }*/
+    
+    @Test
+    public void nextQuestionWhenNotAuthenticated() throws Exception {
+    	mockMvc.perform(get("/api/quiz/next")).andExpect(status().isUnauthorized());  	
     }
     
     @Test
     public void nextQuestion_WhenNoQuestionHasBeenAnsweredYet() throws Exception{
-    	String json = mockMvc.perform(get("/api/quiz/next").sessionAttr(QuizController.USER_KEY, user)).andExpect(status().isOk()).
-    	andReturn().getResponse().getContentAsString();
+    	String json = mockMvc.perform(get("/api/quiz/next")
+    			.with(userDetailsService("Chuck"))
+    			//.sessionAttr(QuizController.USER_KEY, user))
+    			).andExpect(status().isOk()).
+    			andReturn().getResponse().getContentAsString();
     	
     	assertEquals("question.Id is not as expected", new Integer(1), JsonPath.read(json, "$.id"));
     	assertEquals("question.text is not as expected", "Do you have a LinkedIn account?", JsonPath.read(json, "$.text"));
@@ -114,17 +130,18 @@ public class QuizControllerTest {
     public void answerQuestion() throws Exception {
     	//TODO  Check that the answer hasn't been saved before we act but is saved afterwards
     	//quizService.
-    	Answer latestAnswerBeforeAnsweringThisQuestion = findLatestAnswer(this.user);
+    	User user = quizService.findUserByUsernameAndPassword(userName, correctPassword);
+    	Answer latestAnswerBeforeAnsweringThisQuestion = findLatestAnswer(user);
     	
     	Long questionId = 1l; Long choiceId = 2l;
     	String json = answerQuestion(questionId, choiceId);
     	String mainContent = JsonPath.read(json, "$.main");
     	assertEquals(quizService.findQuizContentByChoiceId(choiceId).getMain(), mainContent);
     	
-    	Answer latestAnswerAfterAnsweringThisQuestion = findLatestAnswer(this.user);
+    	Answer latestAnswerAfterAnsweringThisQuestion = findLatestAnswer(user);
     	assertEquals(questionId, latestAnswerAfterAnsweringThisQuestion.getQuestion().getId());
     	assertEquals(choiceId, latestAnswerAfterAnsweringThisQuestion.getChoice().getId());
-    	assertEquals(this.user.getId(), latestAnswerAfterAnsweringThisQuestion.getUser().getId());
+    	assertEquals(user.getId(), latestAnswerAfterAnsweringThisQuestion.getUser().getId());
 
     	assertTrue("Answer existed before we made a choice for our question ", 
     			latestAnswerBeforeAnsweringThisQuestion == null ||  ! latestAnswerAfterAnsweringThisQuestion.getId().equals(latestAnswerBeforeAnsweringThisQuestion.getId()));
@@ -136,22 +153,36 @@ public class QuizControllerTest {
     	String mainContent2 = JsonPath.read(jsonWhenAnsweringWithASecondChoice, "$.main");
     	assertEquals(quizService.findQuizContentByChoiceId(choiceId).getMain(), mainContent2);
     	
-    	Answer thisIsTheLastTimeWeAreAnsweringThisDarnQuestion = findLatestAnswer(this.user);
+    	Answer thisIsTheLastTimeWeAreAnsweringThisDarnQuestion = findLatestAnswer(user);
     	assertEquals(questionId, thisIsTheLastTimeWeAreAnsweringThisDarnQuestion.getQuestion().getId());
     	assertEquals(choiceId, thisIsTheLastTimeWeAreAnsweringThisDarnQuestion.getChoice().getId());
-    	assertEquals(this.user.getId(), thisIsTheLastTimeWeAreAnsweringThisDarnQuestion.getUser().getId());
+    	assertEquals(user.getId(), thisIsTheLastTimeWeAreAnsweringThisDarnQuestion.getUser().getId());
     	
     }
     
     private String answerQuestion(Long questionId, Long choiceId) throws Exception{
     	String path = String.format("/api/quiz/question/%d/choice/%d", questionId, choiceId);
-     	return mockMvc.perform(put(path).sessionAttr(QuizController.USER_KEY, user)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+     	return mockMvc.perform(put(path)
+     			.with(userDetailsService("Chuck"))
+     			//.sessionAttr(QuizController.USER_KEY, user))
+     			).andExpect(status().isOk())
+     			.andReturn().getResponse().getContentAsString();
+    }
+    
+    @Test
+    public void answerQuestionWhenNotAuthenticated() throws Exception{
+    	String path = String.format("/api/quiz/question/%d/choice/%d", 1L, 1L);
+     	mockMvc.perform(put(path)
+     			).andExpect(status().isUnauthorized());   	
     }
     
     @Test
     public void nextQuestion_WhenOneQuestionHasAlreadyBeenAnswered() throws Exception{
     	answerQuestion(1l, 2l);
-    	String json = mockMvc.perform(get("/api/quiz/next").sessionAttr(QuizController.USER_KEY, user)).andExpect(status().isOk()).
+    	String json = mockMvc.perform(get("/api/quiz/next")
+    			.with(userDetailsService("Chuck"))
+    			//.sessionAttr(QuizController.USER_KEY, user))
+    			).andExpect(status().isOk()).
     	andReturn().getResponse().getContentAsString();
     	
     	assertEquals("question.Id is not as expected", new Integer(2), JsonPath.read(json, "$.id"));

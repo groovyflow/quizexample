@@ -16,6 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,6 +30,8 @@ import org.tassoni.quizexample.model.Choice;
 import org.tassoni.quizexample.model.Question;
 import org.tassoni.quizexample.model.QuizContent;
 import org.tassoni.quizexample.model.User;
+import org.tassoni.quizexample.security.AppUserDetails;
+import org.tassoni.quizexample.security.CurrentUser;
 import org.tassoni.quizexample.service.QuizService;
 
 //See http://www.petrikainulainen.net/programming/spring-framework/spring-data-jpa-tutorial-three-custom-queries-with-query-methods/
@@ -50,9 +55,11 @@ public class QuizController {
     //the user's next question, go here.
     @RequestMapping(value = "/api/quiz/next", method = RequestMethod.GET)
     @ResponseBody
-    public Question nextQuestionBasedOnlyOnUser(HttpSession session) {
+    public Question nextQuestionBasedOnlyOnUser() {
+    	AppUserDetails userDetails = (AppUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    	User user = userDetails.getUser();
     	//TODO  Error if not logged in
-    	User user = (User) session.getAttribute(USER_KEY);
+    	//User user = (User) session.getAttribute(USER_KEY);
     	Question question =  quizService.findNextQuestion(user);
     	return question;
     }
@@ -61,10 +68,12 @@ public class QuizController {
     //and then not need @ResponseBody  Should also return the locaton of the next question.
     //See https://www.youtube.com/watch?v=wylViAqNiRA 43 minutes in
     @RequestMapping(value = "/api/quiz/question/{questionId}/choice/{choiceId}", method = RequestMethod.PUT)
-    public ResponseEntity<QuizContent> answerQuestion(@PathVariable Long questionId, @PathVariable Long choiceId, HttpSession session) {
+    public ResponseEntity<QuizContent> answerQuestion(@PathVariable Long questionId, @PathVariable Long choiceId) {
+    	AppUserDetails userDetails = (AppUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    	User user = userDetails.getUser();
     	//TODO  Redirect user to login url.  Best to do that with Spring Security.
-    	User user = (User) session.getAttribute(USER_KEY);
-    	System.out.println("Here are the keys of the session " + sessionNames(session));
+    	//User user = (User) session.getAttribute(USER_KEY);
+/*    	System.out.println("Here are the keys of the session " + sessionNames(session));
     	if(user == null) {
     		//Should really do a link-rel, I guess.
     		return new ResponseEntity<QuizContent>(new HttpHeaders() {
@@ -73,14 +82,14 @@ public class QuizController {
     			}
     		},HttpStatus.UNAUTHORIZED);
     	}
-    	else {
+    	else {*/
     		quizService.saveAnswer(new Answer().setUser(user).setChoice(quizService.stubReferenceForId(Choice.class, choiceId)).
     				setQuestion(quizService.stubReferenceForId(Question.class, questionId)));
     		
     		//TODO  If no quizContent found, we have internal server error.
     		//And looks like we need to URL encode the data!  I see apostrophes getting mangled.
     		return new ResponseEntity<QuizContent>(quizService.findQuizContentByChoiceId(choiceId), HttpStatus.OK);
-    	}
+    	//}
     }
     
     private List<String> sessionNames(HttpSession session) {
@@ -96,12 +105,12 @@ public class QuizController {
     //Could add to this @RequestMapping consumes = MediaType.APPLICATION_JSON, according to minute 47:57 of https://www.youtube.com/watch?v=wylViAqNiRA
     //CHUCK!!! ---> That same video shows throwing specific Exceptions that can handle the possibility of no id found for that entity, etc!!
     //That's starting after minute 59 in that video
-    @RequestMapping(value = LOGIN_URL, method = RequestMethod.POST)
+   // @RequestMapping(value = LOGIN_URL, method = RequestMethod.POST)
     //TODO  Tried to get password by itself from @RequestBody, but it was mangled.  Had to get the whole user.  It had \n and some other extra characters.
     //It's important to either find out how to get parameter values with @RequestBody, or to realize we always need to have @RequestBody <some dto or entity object>
     //TODO THe body we return here is pretty superfluous 
     //??Should it be @ResponseBody User rather than @RequestBody User, as in https://www.youtube.com/watch?v=wylViAqNiRA minute 47
-	public ResponseEntity<Map<String, Object>> login(@PathVariable String username, @RequestBody User user, HttpSession session) {
+/*	public ResponseEntity<Map<String, Object>> login(@PathVariable String username, @RequestBody User user, HttpSession session) {
 		User retrieved = quizService.findUserByUsernameAndPassword(username, user.getPassword());
 		if (retrieved == null) {
 			return new ResponseEntity<Map<String, Object>>(
@@ -119,7 +128,7 @@ public class QuizController {
 			}, HttpStatus.OK);
 		}
 	}
-    
+    */
     
 
 }
