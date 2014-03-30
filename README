@@ -8,7 +8,7 @@ No HTML or Javascript yet.  Just a RESTful interface that we expect our GUI to u
 
 There are several nice tricks here, including configuring a JSON converter that knows not to attempt to render lazy loaded fields of a Hibernate domatin object, and a JSON annotation on domain objects that prevent the JSON conververt from causing an infinite recursion.  You need something like this if you don't want to automatically create a DTO for every Hibernate/JPA object your api returns.
 
-TODO: add Spring Security (with a real UserDetailsService, a real User-with-grants-jpa-object, and caching the user Details with ehCache,  some sfl4j logging.
+TODO: add  a real User-with-grants-jpa-object, and caching the user Details with ehCache,  some sfl4j logging.
 See http://docs.spring.io/spring-security/site/docs/3.2.x/reference/htmlsingle/ 
 <jdbc-user-service data-source-ref="securityDataSource"/> and around there
 1.1. User Schema
@@ -18,14 +18,15 @@ TODO: @ExceptionHandler as in Ben Hale's rest-ful-api-design, https://www.youtub
 ResponseEntity<String> handleXXExceptions(Exception e)
 
 For Spring Security see:
+http://docs.spring.io/spring-security/site/docs/3.2.x/reference/htmlsingle/
 http://www.petrikainulainen.net/programming/spring-framework/integration-testing-of-spring-mvc-applications-security/
 http://www.baeldung.com/2011/10/31/securing-a-restful-web-service-with-spring-security-3-1-part-3/#ch_3_2  and https://github.com/eugenp/tutorials
 
-THIS URL shows how to use Jackson's Object Mapper to convert a JSON String into a Map. 
+THIS URL shows how to use Jackson's Object Mapper to convert a JSON String into a Map: http://djna.wordpress.com/2010/03/12/json-strings-no-rest-using-the-jackson-parser/
 I might do this to compare JSON sent from our RESTful services with the expectation, and here the expectation could be rendered as a Map.
 We could say: Is this expected Map contained in this map transformed from the original JSON?
 We'd ask contained-in rather then equals because it's ok if a few fields that the GUI doesn't need are sent in the JSON
-http://djna.wordpress.com/2010/03/12/json-strings-no-rest-using-the-jackson-parser/
+
 
 @@@@@@
 More on Spring Security:

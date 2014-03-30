@@ -12,7 +12,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -24,7 +23,6 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.context.WebApplicationContext;
-import org.tassoni.quizexample.controller.QuizController;
 import org.tassoni.quizexample.model.Answer;
 import org.tassoni.quizexample.model.User;
 import org.tassoni.quizexample.repository.BasicRepository;
@@ -68,7 +66,6 @@ public class QuizControllerTest {
     private final String userName = "Chuck";
     private final String correctPassword = "thePassword";
     private static final String QUOTE = "\"";
-   // private User user;
     
     @Before
     public void setUp() {
@@ -77,21 +74,7 @@ public class QuizControllerTest {
         transactionTemplate = new TransactionTemplate(platformTransactionManager);
     }
     
-/*    @Test
-    public void login_badPassword() throws Exception {
-    	String incorrectPassword = correctPassword + "x"; 
-    	String json = mockMvc.perform(post("/login/Chuck").contentType(MediaType.APPLICATION_JSON).content(getBytes("{ \"password\": " + QUOTE + incorrectPassword + QUOTE + "}")) ).
-    	andExpect(status().isBadRequest()).andReturn().getResponse().getContentAsString();
-	
-    }
-    
-    @Test
-    public void login_withCorrectCredentials() throws Exception{
-    	String json = mockMvc.perform(post("/login/Chuck").contentType(MediaType.APPLICATION_JSON).content(getBytes("{ \"password\": " + QUOTE + correctPassword + QUOTE + "}")) ).
-    	andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-    	System.out.println("JSON was " + json);
-    }*/
-    
+   
     @Test
     public void nextQuestionWhenNotAuthenticated() throws Exception {
     	mockMvc.perform(get("/api/quiz/next")).andExpect(status().isUnauthorized());  	
