@@ -101,13 +101,12 @@ class BasicRepositoryImpl implements BasicRepository{
 	public Answer latestAnswerForUser(User user) {
 		if(user == null)
 			throw new IllegalArgumentException("Null user");
-		TypedQuery<Answer> query = eM.createQuery("select answer from Answer answer, User user where user.id = :userid and answer.user = :user" + 
+		TypedQuery<Answer> query = eM.createQuery("select answer from Answer answer, User user where answer.user = :user" + 
 	         " order by answer.creationTime desc" , Answer.class);
 		//The join syntax below hasn't worked for me here yet.
 	/*	TypedQuery<Answer> query = eM.createQuery("select answer from Answer answer inner join User user  on (answer.user = :user)  where user.id = :userid "
 				+ "order by answer.creationTime desc" , Answer.class);	*/	
 		query.setMaxResults(1);
-		query.setParameter("userid", user.getId());
 		query.setParameter("user", user);
 		query.setMaxResults(1);
 		LOGGER.debug("Finding next answer for user with id =  " + user.getId());
