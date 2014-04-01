@@ -58,3 +58,10 @@ down, and the browser, having not logged out, still has the cookie.  Not sure ex
 
 
 //See https://github.com/rwinch/gs-spring-security-3.2/blob/master/src/main/java/sample/config/H2Initializer.java
+Need:
+Better comments
+"Note:" substituted for Chuck
+Logging
+!!Get rid of the confusing jpa:repositories and component scan, unless I can fix it.
+If I can't fix it make a note of it.
+Get rid of Question inside Answer, becasue we only need the choice, not the Question.

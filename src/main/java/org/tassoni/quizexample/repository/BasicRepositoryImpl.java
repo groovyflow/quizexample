@@ -97,12 +97,10 @@ class BasicRepositoryImpl implements BasicRepository{
 		 query.setParameter("id", choiceId);
 		 return query.getSingleResult();
 	}
-	//TODO  Move this to AnswerRepository
 	
 	public Answer latestAnswerForUser(User user) {
 		if(user == null)
 			throw new IllegalArgumentException("Null user");
-		System.out.println("Let's see the sql!");
 		TypedQuery<Answer> query = eM.createQuery("select answer from Answer answer, User user where user.id = :userid and answer.user = :user" + 
 	         " order by answer.creationTime desc" , Answer.class);
 		//The join syntax below hasn't worked for me here yet.
@@ -112,6 +110,7 @@ class BasicRepositoryImpl implements BasicRepository{
 		query.setParameter("userid", user.getId());
 		query.setParameter("user", user);
 		query.setMaxResults(1);
+		LOGGER.debug("Finding next answer for user with id =  " + user.getId());
 		List<Answer> answers = query.getResultList();
 		return answers.isEmpty() ? null : answers.iterator().next();
 		//Could have done getSingleResult, but didn't because we don't want "no entity found for query" exception here: return query.getSingleResult();
@@ -120,27 +119,17 @@ class BasicRepositoryImpl implements BasicRepository{
 		TypedQuery<Question> query = eM.createQuery("select distinct question2 from  Question question2 inner join fetch question2.choices choices,  NextQuestion nextQuestion, Question question where"
     		+ "  nextQuestion.question = :question and nextQuestion.choice = :choice and"
 			+ " nextQuestion.nextQuestion = question2 order by choices.id", Question.class);
-		System.out.println("Finding next question for questionId " + answer.getQuestion().getId() + " and choice " + answer.getChoice().getId());
+		LOGGER.debug("Finding next question for questionId " + answer.getQuestion().getId() + " and choice " + answer.getChoice().getId());
 		query.setParameter("question", answer.getQuestion());
 		query.setParameter("choice", answer.getChoice());
-		Question question = query.getSingleResult();
-/*		for(Choice choice : question.getChoices()) {
-			System.out.println("DELETE ME: From BasicRepositoryImpl: choicd id: " + choice.getId() + " text " + choice.getText());
-		}*/
-		
-		return question;
+		return query.getSingleResult();
 	}
 	
 	public Question findQuestionAndChoices(Long questionId) {
 		TypedQuery<Question> query = eM.createQuery("select question from Question question inner join fetch question.choices choices where question.id = :id order by choices.id", 
 				Question.class);
 		query.setParameter("id", questionId);
-		Question question =  query.getSingleResult();
-		
-/*		for(Choice choice : question.getChoices()) {
-			System.out.println("findQuestionAndChoicees by id: DELETE ME: From BasicRepositoryImpl: choicd id: " + choice.getId() + " text " + choice.getText());
-		}*/
-		return question;
+	    return query.getSingleResult();
 	}
 	
 	public <T extends BaseEntity> T genericSingle(final String queryString, final Map<String, Object> params, final Class<T> clazz) {

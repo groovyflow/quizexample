@@ -144,6 +144,7 @@ public class QuizControllerTest {
     }
     
     private String answerQuestion(Long questionId, Long choiceId) throws Exception{
+    	//Chuck: Nice use of format, gives similar power to Groovy GString
     	String path = String.format("/api/quiz/question/%d/choice/%d", questionId, choiceId);
      	return mockMvc.perform(put(path)
      			.with(userDetailsService("Chuck"))

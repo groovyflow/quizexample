@@ -60,7 +60,7 @@ public class WorkOnQueriesTest {
 		String queryString = "select distinct question2 from  Question question2 inner join fetch question2.choices choices,  NextQuestion nextQuestion, Question question where question.id = :id and nextQuestion.question = question and"
 				+ " nextQuestion.nextQuestion = question2 order by choices.id";
 
-		Question nextQuestion = queryInTrx(queryString,
+		Question nextQuestion = basicRepository.genericSingle(queryString,
 				new HashMap<String, Object>() {
 					{
 						put("id", 1L);
@@ -85,7 +85,7 @@ public class WorkOnQueriesTest {
 	public void testFindQuizContentFromChoice() {
 	  String queryString = "select quizContent from QuizContent quizContent, Choice choice where choice.id = :id and choice.quizContent = quizContent";
 		//String queryString = "select choice from  Choice choice join fetch quizContent QuizContent where choice.id = :id";	
-	  QuizContent quizContent = queryInTrx(queryString, new HashMap<String, Object>() {
+	  QuizContent quizContent = basicRepository.genericSingle(queryString, new HashMap<String, Object>() {
 		  {
 			  put("id", 2L);
 		  }
@@ -95,20 +95,6 @@ public class WorkOnQueriesTest {
 	  
 	}
 	
-	private <T> T queryInTrx(final String queryString, final Map<String, Object> params, final Class<T> clazz) {
-		T entity = transactionTemplate.execute(new TransactionCallback<T>() {
-			@Override
-			public T doInTransaction(TransactionStatus status) {
-				TypedQuery<T> query = entityManager.createQuery(queryString, clazz);
-				for(Map.Entry<String, Object> entry  : params.entrySet()) {
-					query.setParameter(entry.getKey(), entry.getValue());
-				}
-				return  query.getSingleResult();
-			}
-		});		
-		
-		return entity;
-	}
 	
 	
 }
